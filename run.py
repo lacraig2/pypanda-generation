@@ -239,9 +239,11 @@ def generate_config(arch, bits, pahole_path, elf_file):
 	header = HeaderFile(arch, base, pahole_path, elf_file)
 	# the truth of the matter is we don't need 1000s of QEMU structs. We need 3.
 	# We also need the tree created by references to those.
-	header.add_struct("CPUState")
-	header.add_struct("TranslationBlock")
-	header.add_struct("MachineState")
+	struct_list = ["QemuThread", "QemuCond", "qemu_work_item","CPUAddressSpace",
+	"GDBRegisterState", "CPUState", "TranslationBlock", "MachineState"]
+
+	for struct in struct_list:
+		header.add_struct(struct)
 
 	# correction to make this not architecture neutral
 	CPUState = header.structs["CPUState"]

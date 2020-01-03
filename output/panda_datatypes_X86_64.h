@@ -73,6 +73,66 @@ typedef uint8_t ZMMReg[40];
 typedef uint8_t MMXReg[8];
 typedef uint8_t ppc_avr_t[16];
 typedef uint8_t ppc_tlb_t[8];
+typedef uint64_t hax_fd;
+struct hax_vcpu_state {
+    hax_fd fd;
+    int vcpu_id;
+    struct hax_tunnel *tunnel;
+    unsigned char *iobuf;
+};
+typedef struct hax_state hax_global;
+typedef struct hax_vcpu_state hax_vcpu_state;
+typedef uint64_t pthread_t;
+typedef uint8_t pthread_cond_t[48]; 
+typedef void * run_on_cpu_func;
+typedef uint64_t run_on_cpu_data;
+typedef int gdb_reg_cb;
+typedef uint8_t __u8;
+typedef uint32_t __u32;
+typedef uint16_t __u16;
+typedef uint64_t __u64;
+struct GHashTable {};
+typedef struct GHashTable GHashTable;
+
+struct QemuThread;
+typedef struct QemuThread QemuThread;
+struct QemuThread {
+	pthread_t                  thread;               /*     0     8 */
+	/* size: 8, cachelines: 1, members: 1 */
+	/* last cacheline: 8 bytes */
+};
+struct QemuCond;
+typedef struct QemuCond QemuCond;
+struct QemuCond {
+	pthread_cond_t             cond;                 /*     0    48 */
+	/* size: 48, cachelines: 1, members: 1 */
+	/* last cacheline: 48 bytes */
+};
+struct qemu_work_item;
+typedef struct qemu_work_item qemu_work_item;
+struct qemu_work_item {
+	struct qemu_work_item *    next;                 /*     0     8 */
+	run_on_cpu_func            func;                 /*     8     8 */
+	run_on_cpu_data            data;                 /*    16     8 */
+	_Bool                      free;                 /*    24     1 */
+	_Bool                      exclusive;            /*    25     1 */
+	_Bool                      done;                 /*    26     1 */
+	/* size: 32, cachelines: 1, members: 6 */
+	/* padding: 5 */
+	/* last cacheline: 32 bytes */
+};
+struct GDBRegisterState;
+typedef struct GDBRegisterState GDBRegisterState;
+struct GDBRegisterState {
+	int                        base_reg;             /*     0     4 */
+	int                        num_regs;             /*     4     4 */
+	gdb_reg_cb                 get_reg;              /*     8     8 */
+	gdb_reg_cb                 set_reg;              /*    16     8 */
+	const char  *              xml;                  /*    24     8 */
+	struct GDBRegisterState *  next;                 /*    32     8 */
+	/* size: 40, cachelines: 1, members: 6 */
+	/* last cacheline: 40 bytes */
+};
 struct TranslationBlock;
 typedef struct TranslationBlock TranslationBlock;
 struct TranslationBlock {
@@ -152,17 +212,6 @@ struct QemuMutex {
 	/* size: 40, cachelines: 1, members: 1 */
 	/* last cacheline: 40 bytes */
 };
-struct Notifier;
-typedef struct Notifier Notifier;
-struct Notifier {
-	void                       (*notify)(Notifier *, void *); /*     0     8 */
-	struct {
-		struct Notifier *  le_next;              /*     8     8 */
-		struct Notifier * * le_prev;             /*    16     8 */
-	} node;                                          /*     8    16 */
-	/* size: 24, cachelines: 1, members: 2 */
-	/* last cacheline: 24 bytes */
-};
 struct RAMBlock;
 typedef struct RAMBlock RAMBlock;
 struct RAMBlock {
@@ -202,6 +251,17 @@ struct MemTxAttrs {
 	/* size: 4, cachelines: 1, members: 4 */
 	/* bit_padding: 13 bits */
 	/* last cacheline: 4 bytes */
+};
+struct Notifier;
+typedef struct Notifier Notifier;
+struct Notifier {
+	void                       (*notify)(Notifier *, void *); /*     0     8 */
+	struct {
+		struct Notifier *  le_next;              /*     8     8 */
+		struct Notifier * * le_prev;             /*    16     8 */
+	} node;                                          /*     8    16 */
+	/* size: 24, cachelines: 1, members: 2 */
+	/* last cacheline: 24 bytes */
 };
 struct MemoryRegionMmio;
 typedef struct MemoryRegionMmio MemoryRegionMmio;
@@ -387,22 +447,6 @@ struct coalesced_ranges {
 	/* size: 16, cachelines: 1, members: 2 */
 	/* last cacheline: 16 bytes */
 };
-struct QemuOptsList;
-typedef struct QemuOptsList QemuOptsList;
-struct QemuOptsList {
-	const char  *              name;                 /*     0     8 */
-	const char  *              implied_opt_name;     /*     8     8 */
-	_Bool                      merge_lists;          /*    16     1 */
-	/* XXX 7 bytes hole, try to pack */
-	struct {
-		struct QemuOpts *  tqh_first;            /*    24     8 */
-		struct QemuOpts * * tqh_last;            /*    32     8 */
-	} head;                                          /*    24    16 */
-	QemuOptDesc                desc[];               /*    40     0 */
-	/* size: 40, cachelines: 1, members: 5 */
-	/* sum members: 33, holes: 1, sum holes: 7 */
-	/* last cacheline: 40 bytes */
-};
 struct AddressSpace;
 typedef struct AddressSpace AddressSpace;
 struct MemoryRegion;
@@ -446,6 +490,22 @@ struct CPUAddressSpace {
 	MemoryListener             tcg_as_listener;      /*    24   160 */
 	/* size: 184, cachelines: 3, members: 4 */
 	/* last cacheline: 56 bytes */
+};
+struct QemuOptsList;
+typedef struct QemuOptsList QemuOptsList;
+struct QemuOptsList {
+	const char  *              name;                 /*     0     8 */
+	const char  *              implied_opt_name;     /*     8     8 */
+	_Bool                      merge_lists;          /*    16     1 */
+	/* XXX 7 bytes hole, try to pack */
+	struct {
+		struct QemuOpts *  tqh_first;            /*    24     8 */
+		struct QemuOpts * * tqh_last;            /*    32     8 */
+	} head;                                          /*    24    16 */
+	QemuOptDesc                desc[];               /*    40     0 */
+	/* size: 40, cachelines: 1, members: 5 */
+	/* sum members: 33, holes: 1, sum holes: 7 */
+	/* last cacheline: 40 bytes */
 };
 struct IOMMUTLBEntry;
 typedef struct IOMMUTLBEntry IOMMUTLBEntry;

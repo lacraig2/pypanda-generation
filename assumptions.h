@@ -72,3 +72,24 @@ typedef uint8_t ZMMReg[40];
 typedef uint8_t MMXReg[8];
 typedef uint8_t ppc_avr_t[16];
 typedef uint8_t ppc_tlb_t[8];
+typedef uint64_t hax_fd;
+struct hax_vcpu_state {
+    hax_fd fd;
+    int vcpu_id;
+    struct hax_tunnel *tunnel;
+    unsigned char *iobuf;
+};
+typedef struct hax_state hax_global;
+typedef struct hax_vcpu_state hax_vcpu_state;
+typedef uint64_t pthread_t;
+typedef uint8_t pthread_cond_t[48]; 
+typedef void * run_on_cpu_func;
+typedef uint64_t run_on_cpu_data;
+typedef int gdb_reg_cb;
+typedef uint8_t __u8;
+typedef uint32_t __u32;
+typedef uint16_t __u16;
+typedef uint64_t __u64;
+struct GHashTable {};
+typedef struct GHashTable GHashTable;
+
