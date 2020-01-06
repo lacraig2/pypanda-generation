@@ -279,7 +279,7 @@ def generate_config(arch, bits, pahole_path, elf_file):
 
 comptries = 0
 panda_base = "~/workspace/panda/build/"
-pahole_path = "~/workspace/pahole/build/pahole"
+pahole_path = "~/workspace/pahole/build/pahole" # do not use the ubuntu version. build it from github
 
 archs = [("X86", 32,"/i386-softmmu/libpanda-i386.so"),
 		("X86", 64, "/x86_64-softmmu/libpanda-x86_64.so"),
