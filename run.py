@@ -225,6 +225,7 @@ class HeaderFile(object):
 			self.ffi.new("CPU"+self.arch+"State*")
 			self.ffi.new("TranslationBlock*")
 			self.ffi.new("MachineState*")
+			self.ffi.new("Monitor*")
 			return False
 		except Exception as e:
 			return self.parse_error_msg(e)
@@ -240,7 +241,7 @@ def generate_config(arch, bits, pahole_path, elf_file):
 	# the truth of the matter is we don't need 1000s of QEMU structs. We need 3.
 	# We also need the tree created by references to those.
 	struct_list = ["QemuThread", "QemuCond", "qemu_work_item","CPUAddressSpace",
-	"GDBRegisterState", "CPUState", "TranslationBlock", "MachineState"]
+	"GDBRegisterState", "CPUState", "TranslationBlock", "MachineState", "Monitor"]
 
 	for struct in struct_list:
 		header.add_struct(struct)

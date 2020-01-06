@@ -93,7 +93,20 @@ typedef uint16_t __u16;
 typedef uint64_t __u64;
 struct GHashTable {};
 typedef struct GHashTable GHashTable;
-
+typedef void IOEventHandler(void *opaque, int event);
+typedef void IOReadHandler(void *opaque, const uint8_t *buf, int size);
+typedef int IOCanReadHandler(void *opaque);
+typedef uint32_t guint;
+typedef uint32_t QType; // actually an enum
+typedef void ReadLineCompletionFunc(void *opaque, const char *cmdline);
+typedef void ReadLineFlushFunc(void *opaque);
+typedef void ReadLineFunc(void *opaque, const char *str,void *readline_opaque);
+typedef void ReadLinePrintfFunc(void *opaque,const char *fmt, ...);
+typedef uint8_t MonitorQMP[72];
+typedef void BlockCompletionFunc(void *opaque, int ret);
+typedef uint8_t QDict[4120];
+typedef uint8_t mon_cmd_t[56];
+typedef char gchar;
 struct QemuThread;
 typedef struct QemuThread QemuThread;
 struct QemuThread {
@@ -177,6 +190,28 @@ struct Object {
 	
 	
 	};
+struct CharBackend;
+typedef struct CharBackend CharBackend;
+struct Chardev;
+typedef struct Chardev Chardev;
+struct CharBackend {
+	Chardev *                  chr;                  /*     0     8 */
+	IOEventHandler *           chr_event;            /*     8     8 */
+	IOCanReadHandler *         chr_can_read;         /*    16     8 */
+	IOReadHandler *            chr_read;             /*    24     8 */
+	void *                     opaque;               /*    32     8 */
+	int                        tag;                  /*    40     4 */
+	int                        fe_open;              /*    44     4 */
+	/* size: 48, cachelines: 1, members: 7 */
+	/* last cacheline: 48 bytes */
+};
+struct QemuMutex;
+typedef struct QemuMutex QemuMutex;
+struct QemuMutex {
+	pthread_mutex_t            lock;                 /*     0    40 */
+	/* size: 40, cachelines: 1, members: 1 */
+	/* last cacheline: 40 bytes */
+};
 struct QemuOptDesc;
 typedef struct QemuOptDesc QemuOptDesc;
 struct QemuOptDesc {
@@ -202,13 +237,6 @@ struct HotplugHandler;
 typedef struct HotplugHandler HotplugHandler;
 struct HotplugHandler {
 	Object                     Parent;               /*     0    40 */
-	/* size: 40, cachelines: 1, members: 1 */
-	/* last cacheline: 40 bytes */
-};
-struct QemuMutex;
-typedef struct QemuMutex QemuMutex;
-struct QemuMutex {
-	pthread_mutex_t            lock;                 /*     0    40 */
 	/* size: 40, cachelines: 1, members: 1 */
 	/* last cacheline: 40 bytes */
 };
@@ -263,6 +291,16 @@ struct Notifier {
 	/* size: 24, cachelines: 1, members: 2 */
 	/* last cacheline: 24 bytes */
 };
+struct QObject;
+typedef struct QObject QObject;
+struct QObject {
+	QType                      type;                 /*     0     4 */
+	/* XXX 4 bytes hole, try to pack */
+	size_t                     refcnt;               /*     8     8 */
+	/* size: 16, cachelines: 1, members: 2 */
+	/* sum members: 12, holes: 1, sum holes: 4 */
+	/* last cacheline: 16 bytes */
+};
 struct MemoryRegionMmio;
 typedef struct MemoryRegionMmio MemoryRegionMmio;
 struct MemoryRegionMmio {
@@ -287,13 +325,6 @@ struct EventNotifier {
 	/* size: 8, cachelines: 1, members: 2 */
 	/* last cacheline: 8 bytes */
 };
-struct AccelState;
-typedef struct AccelState AccelState;
-struct AccelState {
-	Object                     parent_obj;           /*     0    40 */
-	/* size: 40, cachelines: 1, members: 1 */
-	/* last cacheline: 40 bytes */
-};
 struct SegmentCache;
 typedef struct SegmentCache SegmentCache;
 struct SegmentCache {
@@ -313,6 +344,49 @@ struct BNDReg {
 	uint64_t                   ub;                   /*     8     8 */
 	/* size: 16, cachelines: 1, members: 2 */
 	/* last cacheline: 16 bytes */
+};
+struct AccelState;
+typedef struct AccelState AccelState;
+struct AccelState {
+	Object                     parent_obj;           /*     0    40 */
+	/* size: 40, cachelines: 1, members: 1 */
+	/* last cacheline: 40 bytes */
+};
+struct ReadLineState;
+typedef struct ReadLineState ReadLineState;
+struct ReadLineState {
+	char                       cmd_buf[4096];        /*     0  4096 */
+	/* --- cacheline 64 boundary (4096 bytes) --- */
+	int                        cmd_buf_index;        /*  4096     4 */
+	int                        cmd_buf_size;         /*  4100     4 */
+	char                       last_cmd_buf[4096];   /*  4104  4096 */
+	/* --- cacheline 128 boundary (8192 bytes) was 8 bytes ago --- */
+	int                        last_cmd_buf_index;   /*  8200     4 */
+	int                        last_cmd_buf_size;    /*  8204     4 */
+	int                        esc_state;            /*  8208     4 */
+	int                        esc_param;            /*  8212     4 */
+	char *                     history[64];          /*  8216   512 */
+	/* --- cacheline 136 boundary (8704 bytes) was 24 bytes ago --- */
+	int                        hist_entry;           /*  8728     4 */
+	/* XXX 4 bytes hole, try to pack */
+	ReadLineCompletionFunc *   completion_finder;    /*  8736     8 */
+	char *                     completions[256];     /*  8744  2048 */
+	/* --- cacheline 168 boundary (10752 bytes) was 40 bytes ago --- */
+	int                        nb_completions;       /* 10792     4 */
+	int                        completion_index;     /* 10796     4 */
+	ReadLineFunc *             readline_func;        /* 10800     8 */
+	void *                     readline_opaque;      /* 10808     8 */
+	/* --- cacheline 169 boundary (10816 bytes) --- */
+	int                        read_password;        /* 10816     4 */
+	char                       prompt[256];          /* 10820   256 */
+	/* XXX 4 bytes hole, try to pack */
+	/* --- cacheline 173 boundary (11072 bytes) was 8 bytes ago --- */
+	ReadLinePrintfFunc *       printf_func;          /* 11080     8 */
+	ReadLineFlushFunc *        flush_func;           /* 11088     8 */
+	void *                     opaque;               /* 11096     8 */
+	/* size: 11104, cachelines: 174, members: 21 */
+	/* sum members: 11096, holes: 2, sum holes: 8 */
+	/* last cacheline: 32 bytes */
 };
 struct BNDCSReg;
 typedef struct BNDCSReg BNDCSReg;
@@ -670,6 +744,16 @@ struct MemoryListener {
 	/* sum members: 156, holes: 1, sum holes: 4 */
 	/* last cacheline: 32 bytes */
 };
+struct QString;
+typedef struct QString QString;
+struct QString {
+	QObject                    base;                 /*     0    16 */
+	char *                     string;               /*    16     8 */
+	size_t                     length;               /*    24     8 */
+	size_t                     capacity;             /*    32     8 */
+	/* size: 40, cachelines: 1, members: 4 */
+	/* last cacheline: 40 bytes */
+};
 struct QemuOpts;
 typedef struct QemuOpts QemuOpts;
 struct QemuOpts {
@@ -713,6 +797,29 @@ struct DeviceState {
 	/* sum members: 98, holes: 2, sum holes: 10 */
 	/* padding: 4 */
 	/* last cacheline: 48 bytes */
+};
+struct Chardev;
+typedef struct Chardev Chardev;
+struct Chardev {
+	Object                     parent_obj;           /*     0    40 */
+	QemuMutex                  chr_write_lock;       /*    40    40 */
+	/* --- cacheline 1 boundary (64 bytes) was 16 bytes ago --- */
+	CharBackend *              be;                   /*    80     8 */
+	char *                     label;                /*    88     8 */
+	char *                     filename;             /*    96     8 */
+	int                        logfd;                /*   104     4 */
+	int                        be_open;              /*   108     4 */
+	guint                      fd_in_tag;            /*   112     4 */
+	/* XXX 4 bytes hole, try to pack */
+	long unsigned int          features[1];          /*   120     8 */
+	/* --- cacheline 2 boundary (128 bytes) --- */
+	struct {
+		struct Chardev *   tqe_next;             /*   128     8 */
+		struct Chardev * * tqe_prev;             /*   136     8 */
+	} next;                                          /*   128    16 */
+	/* size: 144, cachelines: 3, members: 10 */
+	/* sum members: 140, holes: 1, sum holes: 4 */
+	/* last cacheline: 16 bytes */
 };
 struct MachineState;
 typedef struct MachineState MachineState;
@@ -759,6 +866,38 @@ struct MachineState {
 	/* size: 224, cachelines: 4, members: 33 */
 	/* sum members: 216, holes: 3, sum holes: 8 */
 	/* last cacheline: 32 bytes */
+};
+struct Monitor;
+typedef struct Monitor Monitor;
+struct Monitor {
+	CharBackend                chr;                  /*     0    48 */
+	int                        reset_seen;           /*    48     4 */
+	int                        flags;                /*    52     4 */
+	int                        suspend_cnt;          /*    56     4 */
+	_Bool                      skip_flush;           /*    60     1 */
+	/* XXX 3 bytes hole, try to pack */
+	/* --- cacheline 1 boundary (64 bytes) --- */
+	QemuMutex                  out_lock;             /*    64    40 */
+	QString *                  outbuf;               /*   104     8 */
+	guint                      out_watch;            /*   112     4 */
+	int                        mux_out;              /*   116     4 */
+	ReadLineState *            rs;                   /*   120     8 */
+	/* --- cacheline 2 boundary (128 bytes) --- */
+	MonitorQMP                 qmp;                  /*   128    72 */
+	/* --- cacheline 3 boundary (192 bytes) was 8 bytes ago --- */
+	CPUState *                 mon_cpu;              /*   200     8 */
+	BlockCompletionFunc *      password_completion_cb; /*   208     8 */
+	void *                     password_opaque;      /*   216     8 */
+	mon_cmd_t *                cmd_table;            /*   224     8 */
+	struct {
+		struct mon_fd_t *  lh_first;             /*   232     8 */
+	} fds;                                           /*   232     8 */
+	struct {
+		struct Monitor *   le_next;              /*   240     8 */
+		struct Monitor * * le_prev;              /*   248     8 */
+	} entry;                                         /*   240    16 */
+	/* size: 256, cachelines: 4, members: 17 */
+	/* sum members: 253, holes: 1, sum holes: 3 */
 };
 struct BusState;
 typedef struct BusState BusState;

@@ -92,4 +92,17 @@ typedef uint16_t __u16;
 typedef uint64_t __u64;
 struct GHashTable {};
 typedef struct GHashTable GHashTable;
-
+typedef void IOEventHandler(void *opaque, int event);
+typedef void IOReadHandler(void *opaque, const uint8_t *buf, int size);
+typedef int IOCanReadHandler(void *opaque);
+typedef uint32_t guint;
+typedef uint32_t QType; // actually an enum
+typedef void ReadLineCompletionFunc(void *opaque, const char *cmdline);
+typedef void ReadLineFlushFunc(void *opaque);
+typedef void ReadLineFunc(void *opaque, const char *str,void *readline_opaque);
+typedef void ReadLinePrintfFunc(void *opaque,const char *fmt, ...);
+typedef uint8_t MonitorQMP[72];
+typedef void BlockCompletionFunc(void *opaque, int ret);
+typedef uint8_t QDict[4120];
+typedef uint8_t mon_cmd_t[56];
+typedef char gchar;
